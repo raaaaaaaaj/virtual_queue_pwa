@@ -1,0 +1,124 @@
+.container {
+  font-family: "Arial", sans-serif;
+  color: #333;
+  text-align: center; /* Center the text horizontally */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start; /* Align items to the top */
+  height: 100vh; /* Full viewport height */
+  padding-top: 20px; /* Add some padding at the top */
+}
+
+.label {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.slider-container {
+  display: flex;
+  align-items: center;
+}
+
+.role-text {
+  margin: 0 10px;
+  font-size: 16px;
+}
+
+.slider {
+  position: relative;
+  width: 60px;
+  height: 30px;
+  background-color: #ccc;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.slider::before {
+  content: "";
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  background-color: white;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.3s;
+}
+
+.slider.active {
+  background-color: #007bff;
+}
+
+.slider.active::before {
+  transform: translateX(30px);
+}
+
+.button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 5px;
+  margin-top: 20px;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+.button:hover {
+  background-color: #0056b3;
+  transform: scale(1.05);
+}
+
+.toast-success {
+  border: 1px solid #4caf50;
+  padding: 16px;
+  color: #4caf50;
+}
+
+.toast-error {
+  border: 1px solid #f44336;
+  padding: 16px;
+  color: #f44336;
+}
+
+.toast-custom {
+  border: 1px solid #713200;
+  padding: 16px;
+  color: #713200;
+}
+.name-input {
+  width: 100%;
+  max-width: 400px;
+  padding: 10px;
+  margin: 10px 0;
+  box-sizing: border-box;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+}
+.notification-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.bell-icon {
+  font-size: 24px;
+  color: #ccc;
+}
+
+.bell-icon.enabled {
+  color: #4caf50;
+}
+
+.notification-text {
+  margin-left: 8px;
+  font-size: 16px;
+  color: #333;
+}
