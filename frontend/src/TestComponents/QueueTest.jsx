@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { toast, Toaster } from "react-hot-toast";
 import "./QueueTest.css";
-import { requestFCMToken } from "./utils/firebaseUtils";
+import { requestFCMToken } from "../utils/firebaseUtils";
 // import { saveUserToQueue } from "./utils/SaveApiUtils";
 // import { getQueueData } from "./utils/QueueApiUtils";
 // const ENDPOINT = "http://localhost:8080";
-import socket from "./utils/socketConnect";
+import socket from "../utils/socketConnect";
 function WaitTime() {
   return (
     <div className="wait-time-container">

@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { toast, Toaster } from "react-hot-toast";
 import "./QueueTest.css";
-import { requestFCMToken } from "./utils/firebaseUtils";
-import socket from "./utils/socketConnect";
+import { requestFCMToken } from "../utils/firebaseUtils";
+import socket from "../utils/socketConnect";
 
 function WaitTime({ queue, avgProcessingTime }) {
   const waitTime = queue.length > 0 ? queue.length * avgProcessingTime : 0;
@@ -88,6 +88,7 @@ function QueueTest() {
     });
 
     return () => {
+      console.log("off");
       socket.off("userPopped");
     };
   }, []);

@@ -3,7 +3,7 @@ import { toast, Toaster } from "react-hot-toast";
 import axios from "axios";
 import { FaBell } from "react-icons/fa";
 import "./App.css";
-import { requestFCMToken, onMessageListener } from "./utils/firebaseUtils";
+import { requestFCMToken, onMessageListener } from "../utils/firebaseUtils";
 
 export default function App() {
   const [count, setCount] = useState(0);
