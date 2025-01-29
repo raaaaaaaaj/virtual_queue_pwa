@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import socket from "../utils/socketConnect";
-import SocketContext from "./SocketContext";
+import SocketContext from "./socketContext";
 
 export const SocketProvider = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);

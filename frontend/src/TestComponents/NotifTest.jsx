@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { toast, Toaster } from "react-hot-toast";
 import axios from "axios";
 import { FaBell } from "react-icons/fa";
-import "./App.css";
+import "./NotifTest.css";
 import { requestFCMToken, onMessageListener } from "../utils/firebaseUtils";
 
-export default function App() {
+function NotifTest() {
   const [count, setCount] = useState(0);
   const [fcmToken, setFcmToken] = useState("");
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
@@ -111,3 +111,5 @@ export default function App() {
     </div>
   );
 }
+
+export default NotifTest;
