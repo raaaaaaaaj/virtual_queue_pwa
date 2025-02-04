@@ -62,3 +62,39 @@ button {
 button:hover {
   background-color: #0056b3;
 }
+
+.party-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Adjust the gap between elements as needed */
+}
+
+.party-toggle .slider {
+  cursor: pointer;
+  width: 40px; /* Adjust the width as needed */
+  height: 20px; /* Adjust the height as needed */
+  background-color: #ccc; /* Adjust the background color as needed */
+  border-radius: 10px; /* Adjust the border radius as needed */
+  position: relative;
+  transition: background-color 0.3s;
+}
+
+.party-toggle .slider.active {
+  background-color: #4caf50; /* Adjust the active background color as needed */
+}
+
+.party-toggle .slider::before {
+  content: "";
+  position: absolute;
+  width: 18px; /* Adjust the width as needed */
+  height: 18px; /* Adjust the height as needed */
+  background-color: white; /* Adjust the background color as needed */
+  border-radius: 50%; /* Adjust the border radius as needed */
+  top: 1px; /* Adjust the top position as needed */
+  left: 1px; /* Adjust the left position as needed */
+  transition: transform 0.3s;
+}
+
+.party-toggle .slider.active::before {
+  transform: translateX(20px); /* Adjust the translateX value as needed */
+}

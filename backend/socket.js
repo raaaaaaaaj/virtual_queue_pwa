@@ -1,96 +1,112 @@
-const socketio = require("socket.io");
+const socketIo = require("socket.io");
+const mongoose = require("mongoose");
+const QueueItem = require("./models/QueueItemSchema");
+const sendNotification = require("./src/controllers/FirebaseController");
 
-const initializeSocket = (server) => {
-  const io = socketio(server, {
-    pingTimeout: 60000,
-    cors: { origin: "http://localhost:5173", credentials: true },
+function initializeSocket(server) {
+  const io = socketIo(server, {
+    cors: {
+      origin: "http://localhost:5173", // Replace with your frontend URL
+      methods: ["GET", "POST"],
+      allowedHeaders: ["my-custom-header"],
+      credentials: true,
+    },
   });
-
-  const queues = {}; // Store queues for each room
 
   io.on("connection", (socket) => {
     console.log("New client connected");
 
-    socket.on("joinRoom", ({ ride }) => {
+    socket.on("joinRoom", async ({ ride }) => {
       socket.join(ride.id);
       console.log(`Client joined room: ${ride.name}`);
 
-      // Initialize queue for the room if it doesn't exist
-      if (!queues[ride.id]) {
-        queues[ride.id] = [];
+      try {
+        const queue = await QueueItem.find({ rideId: ride.id }).sort(
+          "position",
+        );
+        socket.emit("queueUpdate", { rideId: ride.id, queue });
+      } catch (error) {
+        console.error("Error fetching queue:", error);
       }
-
-      // Send the current queue to the client
-      socket.emit("queueUpdate", { rideId: ride.id, queue: queues[ride.id] });
     });
 
-    socket.on("leaveRoom", ({ ride }) => {
-      // socket.leave(ride.id);
-      // console.log(`Client left room: ${ride.name}`);
-    });
-
-    socket.on("joinQueue", ({ rideId, name }) => {
-      if (!queues[rideId]) {
-        queues[rideId] = [];
-      }
-
-      // Generate a unique identifier for the user (e.g., name + socket.id)
-      const userId = `${name}-${socket.id}`;
-
-      // Calculate the user's position
-      const position = queues[rideId].length + 1;
-
-      // Add the user to the queue with their unique ID and position
-      queues[rideId].push({ userId, name, position });
-
-      console.log(`Client joined queue: ${name} at position ${position}`);
-      console.log(queues[rideId]);
-
-      // Notify the user of their current position
-      socket.emit("positionUpdate", { rideId, position });
-
-      // Broadcast the updated queue to all clients in the room
-      io.to(rideId).emit("queueUpdate", { rideId, queue: queues[rideId] });
-      io.emit("globalQueueUpdate", { rideId, queue: queues[rideId] });
-    });
-
-    socket.on("bulkJoinQueue", ({ rideId, baseName }) => {
-      if (!queues[rideId]) {
-        queues[rideId] = [];
-      }
-      for (let i = 1; i <= 10; i++) {
-        queues[rideId].push({ name: `${baseName} ${i}` });
-      }
-      console.log(`Bulk joined queue with base name: ${baseName}`);
-      console.log(queues[rideId]);
-      io.to(rideId).emit("queueUpdate", { rideId, queue: queues[rideId] });
-      io.emit("globalQueueUpdate", { rideId, queue: queues[rideId] }); // Emit global event
-    });
-
-    socket.on("popQueue", ({ rideId }) => {
-      if (queues[rideId] && queues[rideId].length > 0) {
-        // Remove the first customer from the queue
-        queues[rideId].shift();
-
-        // Recalculate positions for all remaining users
-        queues[rideId].forEach((customer, index) => {
-          customer.position = index + 1;
-
-          // Notify users if they have reached the 5th or 1st position
-          if (customer.position < 6) {
-            io.to(rideId).emit("positionUpdate", {
-              rideId,
-              position: customer.position,
-              name: customer.name,
-            });
-          }
+    socket.on("enqueue", async ({ rideId, userId, fcmToken, count = 1 }) => {
+      try {
+        const currentQueueLength = await QueueItem.countDocuments({ rideId });
+        const position = currentQueueLength + 1;
+        const queueItem = new QueueItem({
+          rideId,
+          userId,
+          position,
+          fcmToken,
+          party_size: count,
         });
 
-        console.log(`Customer popped from queue for ride: ${rideId}`);
+        await queueItem.save();
 
-        // Broadcast the updated queue to all clients in the room
-        io.to(rideId).emit("queueUpdate", { rideId, queue: queues[rideId] });
-        io.emit("globalQueueUpdate", { rideId, queue: queues[rideId] });
+        const updatedQueue = await QueueItem.find({ rideId }).sort("position");
+        io.to(rideId).emit("queueUpdate", { rideId, queue: updatedQueue });
+      } catch (error) {
+        console.error("Error enqueuing user:", error);
+      }
+    });
+
+    socket.on("bulkJoinQueue", async ({ rideId, baseName }) => {
+      try {
+        const currentQueueLength = await QueueItem.countDocuments({ rideId });
+        const queueItems = [];
+
+        for (let i = 0; i < 10; i++) {
+          const position = currentQueueLength + i + 1;
+          const queueItem = new QueueItem({
+            rideId,
+            userId: `${baseName}-${i + 1}`,
+            position,
+            fcmToken: null, // No FCM token for dummy users
+            party_size: 1,
+          });
+          queueItems.push(queueItem);
+        }
+
+        await QueueItem.insertMany(queueItems);
+
+        const updatedQueue = await QueueItem.find({ rideId }).sort("position");
+        io.to(rideId).emit("queueUpdate", { rideId, queue: updatedQueue });
+      } catch (error) {
+        console.error("Error in bulk joining queue:", error);
+      }
+    });
+
+    socket.on("dequeue", async ({ rideId }) => {
+      try {
+        const firstInQueue = await QueueItem.findOne({ rideId }).sort(
+          "position",
+        );
+        if (firstInQueue) {
+          await QueueItem.deleteOne({ _id: firstInQueue._id });
+          await QueueItem.updateMany({ rideId }, { $inc: { position: -1 } });
+
+          const updatedQueue = await QueueItem.find({ rideId }).sort(
+            "position",
+          );
+          const fifthUser = updatedQueue[4]; // Get the 5th user (if exists)
+
+          if (fifthUser?.fcmToken) {
+            try {
+              await sendNotification({
+                devicetoken: fifthUser.fcmToken,
+                title: "Queue Update",
+                body: "You're now 5th in the queue! Get ready!",
+              });
+            } catch (notificationError) {
+              console.error("Error sending notification:", notificationError);
+            }
+          }
+
+          io.to(rideId).emit("queueUpdate", { rideId, queue: updatedQueue });
+        }
+      } catch (error) {
+        console.error("Error dequeuing user:", error);
       }
     });
 
@@ -100,6 +116,6 @@ const initializeSocket = (server) => {
   });
 
   return io;
-};
+}
 
 module.exports = initializeSocket;

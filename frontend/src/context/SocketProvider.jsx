@@ -5,22 +5,25 @@ import SocketContext from "./socketContext";
 export const SocketProvider = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
 
+  const handleConnect = () => {
+    console.log("Connected to socket server");
+    setIsConnected(true);
+  };
+
+  const handleDisconnect = () => {
+    console.log("Disconnected from socket server");
+    setIsConnected(false);
+  };
+
   useEffect(() => {
     socket.connect();
 
-    socket.on("connect", () => {
-      console.log("Connected to socket server");
-      setIsConnected(true);
-    });
-
-    socket.on("disconnect", () => {
-      console.log("Disconnected from socket server");
-      setIsConnected(false);
-    });
+    socket.on("connect", handleConnect);
+    socket.on("disconnect", handleDisconnect);
 
     return () => {
-      socket.off("connect");
-      socket.off("disconnect");
+      socket.off("connect", handleConnect);
+      socket.off("disconnect", handleDisconnect);
       socket.disconnect();
     };
   }, []);

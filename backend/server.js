@@ -5,6 +5,8 @@ const apiRoutes = require("./routes/api");
 const bodyParser = require("body-parser");
 const fbroute = require("./routes/FirebaseRoute");
 const initializeSocket = require("./socket");
+const { connectToDatabase } = require("./db");
+
 const app = express();
 const port = 8080;
 

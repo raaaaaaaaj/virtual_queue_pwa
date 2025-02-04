@@ -6,6 +6,7 @@ import { onMessageListener } from "../utils/firebaseUtils";
 const useMessageListener = () => {
   useEffect(() => {
     const handleMessage = (payload) => {
+      console.log("Message received. Payload:", payload);
       console.log(
         `Message received. Title: ${payload.notification.title} Body: ${payload.notification.body}`,
       );

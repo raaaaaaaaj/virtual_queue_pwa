@@ -47,4 +47,7 @@ const manifestForPlugin = {
 export default defineConfig({
   plugins: [react(), VitePWA(manifestForPlugin)],
   base: "/",
+  server: {
+    open: true,
+  },
 });
