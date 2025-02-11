@@ -3,4 +3,4 @@ node_modules/
 # Ignore .env file
 .env
 # Ignore firebaseadminSdk.json file
-src/utils/firebaseadminSdk.json
+backend/src/utils/firebaseadminSdk.json
