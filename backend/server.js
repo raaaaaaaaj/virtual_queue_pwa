@@ -7,8 +7,10 @@ const fbroute = require("./routes/FirebaseRoute");
 const initializeSocket = require("./socket");
 const { connectToDatabase } = require("./db");
 
+const dotenv = require("dotenv");
+dotenv.config();
 const app = express();
-const port = 8080;
+const port = process.env.PORT || 8080;
 
 app.use(corsMiddleware);
 app.use(bodyParser.json());

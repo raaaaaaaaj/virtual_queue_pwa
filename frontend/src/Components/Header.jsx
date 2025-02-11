@@ -1,27 +1,49 @@
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../Hooks/useAuth";
 import "../Styles/Header.css";
 
 const Header = () => {
+  const { isAuthenticated, setIsAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setIsAuthenticated(false);
+    navigate("/login");
+    window.location.reload(); // Force a re-render
+  };
+
   return (
     <header className="header">
       <div className="header-container">
-        <h1 className="header-title">Amusement Park Virtual Queue Portal</h1>
+        <h1 className="header-title">Virtual Queue</h1>
         <nav className="header-nav">
           <ul className="nav-list">
             <li className="nav-item">
-              <a href="/" className="nav-link">
+              <Link to="/" className="nav-link">
                 Home
-              </a>
+              </Link>
             </li>
-            <li className="nav-item">
-              <a href="/admin" className="nav-link">
-                Admin Dashboard
-              </a>
-            </li>
-            <li className="nav-item">
-              <a href="/customer" className="nav-link">
-                Customer View
-              </a>
-            </li>
+            {isAuthenticated ? (
+              <li className="nav-item">
+                <Link to="/" className="nav-link" onClick={handleLogout}>
+                  Logout
+                </Link>
+              </li>
+            ) : (
+              <>
+                <li className="nav-item">
+                  <Link to="/login" className="nav-link">
+                    Login
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link to="/register" className="nav-link">
+                    Register
+                  </Link>
+                </li>
+              </>
+            )}
           </ul>
         </nav>
       </div>

@@ -1,24 +1,28 @@
+// filepath: /d:/Proj/virtual-queue/backend/routes/api.js
 const express = require("express");
 const router = express.Router();
 const { connectToDatabase } = require("../db");
-const mockAuthMiddleware = require("../middleware/mockAuthMiddleware");
-const authController = require("../src/controllers/authController");
-// const {
-//   addUserToQueue,
-//   getQueueData,
-// } = require("../src/controllers/queueController");
+const authRoutes = require("./authRoutes");
+const { protect } = require("../middleware/authMiddleware");
 const { getRides } = require("../src/controllers/ridesController");
 const { getQueues } = require("../src/controllers/queueController");
+const {
+  getParkInfo,
+  saveParkInfo,
+} = require("../src/controllers/parkController"); // Import the controller
 
 connectToDatabase();
-router.use(mockAuthMiddleware);
+router.use("/auth", authRoutes);
 router.get("/", (req, res) => {
   res.json({ message: "Hello from server!" });
 });
+router.get("/protected", protect, (req, res) => {
+  res.json({ message: "This is a protected route", user: req.user });
+});
 
-// router.post("/add-to-queue", addUserToQueue);
-// router.get("/queue", getQueueData);
 router.get("/rides", getRides);
 router.get("/queueitems", getQueues);
-router.get("/auth/check", authController.checkAuth);
+router.get("/park-info", getParkInfo); // Add the new endpoint
+router.post("/park-info", saveParkInfo);
+
 module.exports = router;

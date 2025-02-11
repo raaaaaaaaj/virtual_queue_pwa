@@ -1,9 +1,11 @@
 /* Customer View Container */
 .customer-view {
   padding: 2rem;
+  padding-top: 6rem; /* Add padding to the top to account for the sticky header */
   max-width: 1200px;
   margin: 0 auto;
   text-align: center;
+  overflow: auto; /* Ensure the container can scroll if needed */
 }
 
 /* Rides List */
@@ -13,6 +15,7 @@
   gap: 1.5rem;
   justify-content: center;
   margin-top: 2rem;
+  overflow: auto; /* Ensure the container can scroll if needed */
 }
 
 /* Ride Card */
@@ -43,6 +46,16 @@
 .ride-card p {
   font-size: 1rem;
   margin-bottom: 1.5rem;
+}
+
+/* Conditional styles for ride cards with queue info */
+.ride-card.has-queue-info {
+  background: linear-gradient(
+    135deg,
+    #ff7e5f 0%,
+    #feb47b 100%
+  ); /* Different gradient background */
+  border: 2px solid #ff7e5f; /* Border color */
 }
 
 /* Join Button */

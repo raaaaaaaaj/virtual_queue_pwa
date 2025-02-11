@@ -1,0 +1,53 @@
+.admin-panel {
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.add-ride-form,
+.manage-queue {
+  margin-bottom: 2rem;
+}
+
+.add-ride-form input,
+.add-ride-form button {
+  display: block;
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  font-size: 1rem;
+}
+
+.add-ride-form button {
+  background-color: #6a11cb;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.add-ride-form button:hover {
+  background-color: #2575fc;
+}
+
+.ride-item {
+  margin-bottom: 1rem;
+}
+
+.ride-item h4 {
+  margin: 0 0 0.5rem;
+}
+
+.ride-item button {
+  background-color: #ff7e5f;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.ride-item button:hover {
+  background-color: #feb47b;
+}

@@ -16,9 +16,9 @@ function initializeSocket(server) {
   io.on("connection", (socket) => {
     console.log("New client connected");
 
-    socket.on("joinRoom", async ({ ride }) => {
+    socket.on("joinRoom", async ({ ride, userId }) => {
       socket.join(ride.id);
-      console.log(`Client joined room: ${ride.name}`);
+      console.log(`Client joined room: ${ride.name} for user: ${userId}`);
 
       try {
         const queue = await QueueItem.find({ rideId: ride.id }).sort(
@@ -45,7 +45,7 @@ function initializeSocket(server) {
         await queueItem.save();
 
         const updatedQueue = await QueueItem.find({ rideId }).sort("position");
-        io.to(rideId).emit("queueUpdate", { rideId, queue: updatedQueue });
+        io.to(rideId).emit("queueUpdate", { rideId, queue: updatedQueue }); // Emit to all clients in the room
       } catch (error) {
         console.error("Error enqueuing user:", error);
       }
@@ -71,13 +71,13 @@ function initializeSocket(server) {
         await QueueItem.insertMany(queueItems);
 
         const updatedQueue = await QueueItem.find({ rideId }).sort("position");
-        io.to(rideId).emit("queueUpdate", { rideId, queue: updatedQueue });
+        io.to(rideId).emit("queueUpdate", { rideId, queue: updatedQueue }); // Emit to all clients in the room
       } catch (error) {
         console.error("Error in bulk joining queue:", error);
       }
     });
 
-    socket.on("dequeue", async ({ rideId }) => {
+    socket.on("dequeue", async ({ rideId, userId, rideName }) => {
       try {
         const firstInQueue = await QueueItem.findOne({ rideId }).sort(
           "position",
@@ -96,18 +96,29 @@ function initializeSocket(server) {
               await sendNotification({
                 devicetoken: fifthUser.fcmToken,
                 title: "Queue Update",
-                body: "You're now 5th in the queue! Get ready!",
+                body: `You're now 5th for ${rideName} ! Get ready!`,
+                rideId: rideId, // Pass the rideId to generate the clickAction URL
               });
             } catch (notificationError) {
               console.error("Error sending notification:", notificationError);
             }
           }
 
-          io.to(rideId).emit("queueUpdate", { rideId, queue: updatedQueue });
+          io.to(rideId).emit("queueUpdate", { rideId, queue: updatedQueue }); // Emit to all clients in the room
         }
       } catch (error) {
         console.error("Error dequeuing user:", error);
       }
+    });
+
+    socket.on("globalUpdate", (update) => {
+      const { rideId, position, waitTime, formattedArrivalTime } = update;
+      io.to(rideId).emit("globalUpdate", {
+        rideId,
+        position,
+        waitTime,
+        formattedArrivalTime,
+      });
     });
 
     socket.on("disconnect", () => {

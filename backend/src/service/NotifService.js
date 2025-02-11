@@ -9,6 +9,9 @@ class NotifService {
           title: message.title,
           body: message.body,
         },
+        data: {
+          click_action: message.clickAction, // Include the click_action in the data payload
+        },
       });
       console.log("Notification sent successfully:", response);
       return response;

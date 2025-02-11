@@ -1,8 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import "../Styles/CustomerView.css";
+import "../Styles/CustomerView.css?v=1.0.0"; // Append version or timestamp
 import { requestFCMToken } from "../utils/firebaseUtils";
+import { useQueue } from "../Contexts/QueueContext";
+import useSocket from "../Hooks/useSocket"; // Import the useSocket hook
+import AuthContext from "../Contexts/AuthContext"; // Import AuthContext
 
 const CustomerView = () => {
   const [fcmToken, setFcmToken] = useState("");
@@ -10,6 +13,9 @@ const CustomerView = () => {
   const [rides, setRides] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { queues: queuesData, setQueueInfo } = useQueue();
+  const { socket } = useSocket(); // Get the socket instance
+  const { isAuthenticated } = useContext(AuthContext); // Get authentication status
 
   useEffect(() => {
     async function fetchInitialData() {
@@ -43,6 +49,19 @@ const CustomerView = () => {
     fetchNotifToken();
   }, []);
 
+  useEffect(() => {
+    const handleGlobalUpdate = (update) => {
+      const { rideId, position, waitTime, formattedArrivalTime } = update;
+      setQueueInfo(rideId, { position, waitTime, formattedArrivalTime });
+    };
+
+    socket.on("globalUpdate", handleGlobalUpdate);
+
+    return () => {
+      socket.off("globalUpdate", handleGlobalUpdate);
+    };
+  }, [socket, setQueueInfo]);
+
   const calculateWaitTime = (rideId) => {
     const queue = queues.find((queue) => queue.rideId === rideId);
     return queue ? queue.estimatedWaitTime : 0; // Get estimated wait time from the queue object
@@ -54,6 +73,10 @@ const CustomerView = () => {
   };
 
   const handleViewQueue = (rideId) => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
     const selectedRide = rides.find((ride) => ride.id === rideId);
     navigate(`/queue/${rideId}`, { state: { ride: selectedRide, fcmToken } });
   };
@@ -68,13 +91,36 @@ const CustomerView = () => {
           rides.map((ride) => {
             const queueLength = getQueueLength(ride.id); // Get queue length for the ride
             const waitTime = calculateWaitTime(ride.id); // Calculate wait time
+            const queueInfo = queuesData[ride.id] || {
+              position: null,
+              waitTime: null,
+              formattedArrivalTime: null,
+            }; // Get queue info for the current ride
+
+            const hasQueueInfo = queueInfo.position !== null;
+
             return (
-              <div key={ride.id} className="ride-card">
+              <div
+                key={ride.id}
+                className={`ride-card ${hasQueueInfo ? "has-queue-info" : ""}`}
+              >
                 <img src={ride.image} alt={ride.name} className="ride-image" />
                 <h3>{ride.name}</h3>
                 <p>{ride.description}</p>
-                <p>Number of people in queue: {queueLength}</p>
-                <p>Estimated wait time: {waitTime} minutes</p>
+                {hasQueueInfo ? (
+                  <>
+                    <p>No of people ahead of you: {queueInfo.position - 1}</p>
+                    <p>Your Wait Time: {queueInfo.waitTime} minutes</p>
+                    <p>
+                      Estimated Arrival Time: {queueInfo.formattedArrivalTime}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p>Number of people in queue: {queueLength}</p>
+                    <p>Estimated wait time: {waitTime} minutes</p>
+                  </>
+                )}
                 <button
                   className="view-button"
                   onClick={() => handleViewQueue(ride.id)}
